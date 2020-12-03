@@ -19,21 +19,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.http.ResponseEntity.noContent;
+import static org.springframework.http.ResponseEntity.ok;
+
 @RestController
 @RequestMapping("/doces")
 public class DoceController {
     @Autowired
     private DoceRepository repository;
 
-    FilaObj f = new FilaObj(30);
+    FilaObj<Doce> f = new FilaObj<>(30);
 
-    PilhaObj p = new PilhaObj(30);
+    PilhaObj<Doce> p = new PilhaObj<>(30);
 
     List<Doce> l = new ArrayList<Doce>();
 
     @GetMapping("/get")
-    public ResponseEntity gets(){
-        return ResponseEntity.ok(repository.findAll());
+    public ResponseEntity gets() {
+        List<Doce> escolas = repository.findAll();
+
+        return escolas.isEmpty() ? noContent().build() : ok(escolas);
     }
 
 
@@ -48,16 +53,21 @@ public class DoceController {
     }
 
     @DeleteMapping("/desfazer")
-    public void desfazer(){
-        repository.delete((Doce) p.pop());
+    public ResponseEntity desfazer(){
+        if(!p.isEmpty()) {
+            repository.delete(p.pop());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @Scheduled(fixedRate = 10000)
-    public void verificar() {
-        Object a = f.poll();
-        repository.save((Doce) a );
-        System.out.println("item adicionado");
-        l.add((Doce) a);
+    public void conferir() {
+        if (!f.isEmpty()) {
+            repository.save(f.poll());
+            System.out.println("item adicionado");
+            l.add(f.poll());
+        }
     }
 
     @GetMapping("/pesquisa/{docinho}")
@@ -72,9 +82,10 @@ public class DoceController {
     }
 
     @PostMapping("/arquivo")
-    public ResponseEntity enviar(@RequestParam("arquivo") MultipartFile arquivo) throws IOException {
+    public ResponseEntity arquivo(@RequestParam("arquivo") MultipartFile arquivo) throws IOException {
 
-        // verificando se o arquivo foi enviado mesmo
+        // importando o arquivo de texto
+
         if (arquivo.isEmpty()) {
             return ResponseEntity.badRequest().body("Arquivo não enviado!");
         }
@@ -85,7 +96,7 @@ public class DoceController {
         // obtendo o conteúdo do arquivo
         byte[] conteudo = arquivo.getBytes();
 
-        // obtendo o nome original do arquivo para criar uma cópia dele
+
         Path path = Paths.get(arquivo.getOriginalFilename());
         Files.write(path, conteudo);
 
