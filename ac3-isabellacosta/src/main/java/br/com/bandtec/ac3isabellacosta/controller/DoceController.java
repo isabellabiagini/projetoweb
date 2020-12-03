@@ -36,9 +36,9 @@ public class DoceController {
 
     @GetMapping("/get")
     public ResponseEntity gets() {
-        List<Doce> escolas = repository.findAll();
+        List<Doce> doces = repository.findAll();
 
-        return escolas.isEmpty() ? noContent().build() : ok(escolas);
+        return doces.isEmpty() ? noContent().build() : ok(doces);
     }
 
 
@@ -74,7 +74,7 @@ public class DoceController {
     public ResponseEntity pesquisa(@PathVariable UUID docinho){
         for (Doce d : l) {
             if (d.getUu().equals(docinho)) {
-                l.remove(0);
+                l.remove(d);
                 return ResponseEntity.ok().body("Docinho adicionado");
             }
         }
