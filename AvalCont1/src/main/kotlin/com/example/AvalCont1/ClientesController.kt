@@ -34,8 +34,7 @@ class ClientesController {
     }
 
     @GetMapping("/maisricos")
-    fun riquinhos(@PathVariable renda : Int){
-        clientes.renda()
-
+    fun riquinhos(): ResponseEntity<List<Clientes>> {
+        return ResponseEntity.ok().body(listinha.filter {it.renda > 15000 })
     }
 }
